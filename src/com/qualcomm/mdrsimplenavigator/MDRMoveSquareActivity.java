@@ -22,12 +22,15 @@ import ioio.lib.util.android.IOIOActivity;
 public class MDRMoveSquareActivity extends IOIOActivity{
 	
 	private final String TAG = "MDRMoveSquareActivity";
-	private final int TOTAL_MOVE_TIME_IN_MS = 6000;
-	private final int MOVE_FORWARD_IN_MS = 1000;
-	private final int TURN_RIGHT_IN_MS = 500;
+	private final int TIME_OFFSET_IN_MS = 200;
+	private final int TOTAL_MOVE_TIME_IN_MS = 8000 - TIME_OFFSET_IN_MS;
+	private final int MOVE_FORWARD_IN_MS = 1400;
+	private final int TURN_RIGHT_IN_MS = 600;
 	
-	public final int PWM_MAX_VAL_DEFAULT = 2000;
-	public final int PWM_OFF_VAL = 0;
+	public final int PWM_CENTER_VAL_DEFAULT = 1500;
+    public final int PWM_MIN_VAL_DEFAULT = 1000;
+    public final int PWM_MAX_VAL_DEFAULT = 2000;
+    public final int PWM_OFF_VAL = 0;
 	
     public int mPwmDriveRightVal = PWM_OFF_VAL;
     public int mPwmDriveLeftVal = PWM_OFF_VAL;
@@ -51,8 +54,8 @@ public class MDRMoveSquareActivity extends IOIOActivity{
 	}
 	
 	class SquareLooper extends BaseIOIOLooper {
-		private final int PWM_PIN_DRIVE_LEFT = 2;
-		private final int PWM_PIN_DRIVE_RIGHT = 3;
+		private final int PWM_PIN_DRIVE_RIGHT = 2;
+		private final int PWM_PIN_DRIVE_LEFT = 3;
 		
 		private final int PWM_FREQUENCY_IN_HZ = 50;
 		
@@ -79,9 +82,9 @@ public class MDRMoveSquareActivity extends IOIOActivity{
 	    	final Timer timer = new Timer();
 			timer.schedule(new ReturnTask(), TOTAL_MOVE_TIME_IN_MS);
 	    	
-			timer.schedule(new MoveForwardTask(), MOVE_FORWARD_IN_MS,
+			timer.schedule(new MoveForwardTask(), 0,
 					MOVE_FORWARD_IN_MS + TURN_RIGHT_IN_MS);
-			timer.schedule(new TurnRightTask(), TURN_RIGHT_IN_MS,
+			timer.schedule(new TurnRightTask(), MOVE_FORWARD_IN_MS,
 					MOVE_FORWARD_IN_MS + TURN_RIGHT_IN_MS);
 			
 			timer.schedule(new HandleProgress(), TOTAL_MOVE_TIME_IN_MS / 100,
@@ -138,19 +141,19 @@ public class MDRMoveSquareActivity extends IOIOActivity{
 		}
 	}
 	
-	class MoveForwardTask extends TimerTask {
-		@Override
-		public void run() {
-			mPwmDriveRightVal = PWM_MAX_VAL_DEFAULT;
-			mPwmDriveLeftVal = PWM_MAX_VAL_DEFAULT;
-		}
-	}
-	
 	class TurnRightTask extends TimerTask {
 		@Override
 		public void run() {
-			mPwmDriveRightVal = PWM_OFF_VAL;
-			mPwmDriveLeftVal = PWM_MAX_VAL_DEFAULT;
+			mPwmDriveRightVal = PWM_CENTER_VAL_DEFAULT - (PWM_CENTER_VAL_DEFAULT - PWM_MIN_VAL_DEFAULT) / 2;
+			mPwmDriveLeftVal = PWM_CENTER_VAL_DEFAULT - (PWM_CENTER_VAL_DEFAULT - PWM_MIN_VAL_DEFAULT) / 2;
+		}
+	}
+	
+	class MoveForwardTask extends TimerTask {
+		@Override
+		public void run() {
+			mPwmDriveRightVal = PWM_CENTER_VAL_DEFAULT + (PWM_MAX_VAL_DEFAULT - PWM_CENTER_VAL_DEFAULT) / 2;
+			mPwmDriveLeftVal = PWM_CENTER_VAL_DEFAULT - (PWM_CENTER_VAL_DEFAULT - PWM_MIN_VAL_DEFAULT) / 2;
 		}
 	}
 	
